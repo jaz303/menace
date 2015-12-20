@@ -73,6 +73,9 @@ typedef struct mc_parser {
 #define AT(tok) \
 	(CURR() == tok)
 
+#define PEEK() \
+	(p->next.token)
+
 #define MK2(type, arg1, arg2) \
 	mk_ast_##type(arg1, arg2)
 
@@ -119,26 +122,41 @@ val_t parse_atom(mc_parser_t *p) {
 	} else {
 		ERROR("expected: atom");
 	}
+	return out;
 }
 
 val_t parse_message(mc_parser_t *p) {
-	
+	return mk_nil();
 }
 
 val_t parse_expression(mc_parser_t *p) {
-
+	val_t exp;
+	PARSE_INTO(exp, atom);
+	if (AT(TOK_IDENT)) {
+		PARSE(msg, message);
+		// exp = mk_ast_send(exp, msg);
+	}
+	return exp;
 }
 
-val_t parse_line(mc_parser_t *p) {
+val_t parse_assign(mc_parser_t *p) {
+	ACCEPT(TOK_IDENT);
+	ACCEPT(TOK_ASSIGN);
+	PARSE(exp, expression);
+	val_t foo;
+	return foo;
+}
+
+val_t parse_statement(mc_parser_t *p) {
+	val_t stmt;
 	if (AT(TOK_IDENT)) {
-		NEXT();
-		if (AT(TOK_ASSIGN)) {
-			NEXT();
-			PARSE(exp, expression);
+		if (PEEK() == TOK_ASSIGN) {
+			PARSE_INTO(stmt, assign);
 		} else {
-			PARSE(msg, message);
+			PARSE_INTO(stmt, expression);
 		}
 	}
+	return stmt;
 }
 
 /* Public Interface */
