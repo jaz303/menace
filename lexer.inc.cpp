@@ -18,6 +18,7 @@ enum {
 
     TOK_NL,
     TOK_COMMA,
+    TOK_COLON,
 
     TOK_TERMINAL = 1000,
     TOK_EOF,
@@ -27,6 +28,7 @@ enum {
 typedef struct mc_lexer {
     char *text;
     size_t pos;
+    int token;
     int line;
     int column;
     int tok_start;
@@ -37,14 +39,12 @@ typedef struct mc_lexer {
 
 #define MARK() l->tok_start = l->pos; l->tok = &(l->text[l->pos])
 #define END() l->tok_len = l->pos - l->tok_start
-#define EMIT(tok) return tok
+#define EMIT(tok) l->token = tok
 #define CURR() (l->text[l->pos])
 #define NEXT() lexer_next(l)
 #define LEN() (l->tok_len)
 #define TEXTEQ(str) streql(str, l->tok, l->tok_len)
-#define ERROR(msg) \
-    l->error = msg; \
-    return TOK_ERROR
+#define ERROR(msg) l->error = msg; EMIT(TOK_ERROR)
 
 int space_p(char c) {
     return c == ' ' || c == '\t';
@@ -75,7 +75,7 @@ void lexer_next(mc_lexer_t *l) {
     l->pos++;
 }
 
-void rt_lexer_init(mc_lexer_t *lexer, char *text) {
+void mc_lexer_init(mc_lexer_t *lexer, char *text) {
     lexer->text = text;
     lexer->pos = 0;
     lexer->line = 1;
@@ -86,7 +86,7 @@ void rt_lexer_init(mc_lexer_t *lexer, char *text) {
     lexer->error = NULL;
 }
 
-void rt_lexer_clone(mc_lexer_t *d, const mc_lexer_t *s) {
+void mc_lexer_clone(mc_lexer_t *d, const mc_lexer_t *s) {
     d->text = s->text;
     d->pos = s->pos;
     d->line = s->line;
@@ -97,9 +97,9 @@ void rt_lexer_clone(mc_lexer_t *d, const mc_lexer_t *s) {
     d->error = s->error;
 }
 
-int rt_lexer_next(mc_lexer_t *l) {
+void mc_lexer_next(mc_lexer_t *l) {
     if (l->error) {
-        return TOK_ERROR;
+        EMIT(TOK_ERROR);
     }
     while (space_p(l->text[l->pos])) {
         l->pos++;
@@ -124,7 +124,7 @@ int rt_lexer_next(mc_lexer_t *l) {
                 NEXT();
                 EMIT(TOK_ASSIGN);
             } else {
-                ERROR("expected: '='");
+                EMIT(TOK_COLON);
             }
         case '"':
             {
