@@ -1,6 +1,9 @@
 enum {
 	AST_LIST,
-	AST_ASSIGN
+	AST_ASSIGN,
+	AST_SEND,
+	AST_UNARY_MSG,
+	AST_MSG_PART
 };
 
 enum {

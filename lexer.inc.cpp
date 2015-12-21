@@ -39,7 +39,7 @@ typedef struct mc_lexer {
 
 #define MARK() l->tok_start = l->pos; l->tok = &(l->text[l->pos])
 #define END() l->tok_len = l->pos - l->tok_start
-#define EMIT(tok) l->token = tok
+#define EMIT(tok) l->token = tok; return
 #define CURR() (l->text[l->pos])
 #define NEXT() lexer_next(l)
 #define LEN() (l->tok_len)
@@ -102,7 +102,7 @@ void mc_lexer_next(mc_lexer_t *l) {
         EMIT(TOK_ERROR);
     }
     while (space_p(l->text[l->pos])) {
-        l->pos++;
+        NEXT();
     }
     switch (CURR()) {
         case '\0': EMIT(TOK_EOF);
@@ -158,8 +158,8 @@ void mc_lexer_next(mc_lexer_t *l) {
                     NEXT();
                 }
                 END();
-                if (TEXTEQ("true"))     EMIT(TOK_TRUE);
-                if (TEXTEQ("false"))    EMIT(TOK_FALSE);
+                if (TEXTEQ("true"))     { EMIT(TOK_TRUE); }
+                if (TEXTEQ("false"))    { EMIT(TOK_FALSE); }
                 EMIT(TOK_IDENT);
             } else if (digit_p(CURR())) {
                 MARK(); NEXT();
