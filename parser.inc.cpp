@@ -207,6 +207,7 @@ val_t mc_parse_repl_line(mc_parser_t *p) {
 	return stmt;
 }
 
+#undef COPY_TOKEN
 #undef SKIP_NL
 #undef PARSE_INTO
 #undef PARSE
